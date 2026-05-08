@@ -16,6 +16,13 @@ void main() async {
   }
 
   await Hive.openBox<Book>('books');
+  await Hive.openBox('settings');
+
+  // Initialize premium setting if not exists
+  final settingsBox = Hive.box('settings');
+  if (!settingsBox.containsKey('isPremium')) {
+    await settingsBox.put('isPremium', false);
+  }
 
   runApp(const MyApp());
 }

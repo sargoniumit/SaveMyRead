@@ -66,6 +66,18 @@ class _AddBookScreenState extends State<AddBookScreen> {
   Future<void> _saveBook() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Check book limit for free users
+    if (widget.book == null) {
+      final settingsBox = Hive.box('settings');
+      final isPremium = settingsBox.get('isPremium', defaultValue: false);
+      final booksBox = Hive.box<Book>('books');
+
+      if (!isPremium && booksBox.length >= 5) {
+        _showPremiumDialog();
+        return;
+      }
+    }
+
     if (widget.book != null) {
       widget.book!.title = _titleController.text.trim();
       widget.book!.author = _authorController.text.trim();
@@ -88,6 +100,33 @@ class _AddBookScreenState extends State<AddBookScreen> {
     if (mounted) {
       Navigator.pop(context);
     }
+  }
+
+  void _showPremiumDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Premium Required'),
+        content: const Text('You have reached the limit of 5 free books. Purchase Lifetime access for \$2.99 for unlimited books.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final settingsBox = Hive.box('settings');
+              await settingsBox.put('isPremium', true);
+              if (context.mounted) {
+                Navigator.pop(context);
+                _saveBook();
+              }
+            },
+            child: const Text('Mock Purchase'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

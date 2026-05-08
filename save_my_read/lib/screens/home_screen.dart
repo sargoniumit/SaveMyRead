@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:save_my_read/models/book.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'add_book_screen.dart';
 import 'book_detail_screen.dart';
 import 'dart:io';
@@ -17,7 +18,27 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SaveMyRead'),
+        centerTitle: true,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.menu_book, color: Color(0xFF2C3E50), size: 28),
+            const SizedBox(width: 8),
+            ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [Color(0xFF2C3E50), Color(0xFF8E44AD)],
+              ).createShader(bounds),
+              child: Text(
+                'SaveMyRead',
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: ValueListenableBuilder(
