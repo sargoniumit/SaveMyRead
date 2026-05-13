@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:save_my_read/models/book.dart';
+import 'package:save_my_read/services/payment_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'book_detail_screen.dart';
 import 'dart:io';
-import 'package:save_my_read/models/book.dart';
 
 class AddBookScreen extends StatefulWidget {
   final Book? book;
@@ -103,26 +106,54 @@ class _AddBookScreenState extends State<AddBookScreen> {
   }
 
   void _showPremiumDialog() {
+    final paymentService = PaymentService();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Premium Required'),
-        content: const Text('You have reached the limit of 5 free books. Purchase Lifetime access for \$2.99 for unlimited books.'),
+        backgroundColor: const Color(0xFFF9F5E7),
+        title: Text(
+          'Premium Required',
+          style: GoogleFonts.inter(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF4F8A8B),
+          ),
+        ),
+        content: Text(
+          'You have reached the limit of 5 free books. Purchase Lifetime access for unlimited books.',
+          style: GoogleFonts.fraunces(
+            fontSize: 16,
+            color: const Color(0xFF1A3233),
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.fraunces(
+                color: const Color(0xFF1A3233),
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
-              final settingsBox = Hive.box('settings');
-              await settingsBox.put('isPremium', true);
-              if (context.mounted) {
+              final success = await paymentService.buyPremium();
+              if (success && context.mounted) {
                 Navigator.pop(context);
                 _saveBook();
               }
             },
-            child: const Text('Mock Purchase'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFB68D40),
+            ),
+            child: Text(
+              'Purchase',
+              style: GoogleFonts.fraunces(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ],
       ),

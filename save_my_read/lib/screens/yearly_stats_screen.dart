@@ -18,6 +18,12 @@ class _YearlyStatsScreenState extends State<YearlyStatsScreen> {
   @override
   void initState() {
     super.initState();
+    if (!Hive.isBoxOpen('statistics')) {
+      Hive.openBox<Statistics>('statistics');
+    }
+    if (!Hive.isBoxOpen('books')) {
+      Hive.openBox<Book>('books');
+    }
     statsBox = Hive.box<Statistics>('statistics');
     booksBox = Hive.box<Book>('books');
   }
@@ -27,7 +33,7 @@ class _YearlyStatsScreenState extends State<YearlyStatsScreen> {
       (s) => s.year == year,
       orElse: () => Statistics()..year = year..count = 0,
     );
-    
+
     if (statsBox.values.any((s) => s.year == year)) {
       stats.count += delta;
       stats.save();
@@ -42,12 +48,12 @@ class _YearlyStatsScreenState extends State<YearlyStatsScreen> {
   Future<void> _syncWithLibrary() async {
     final currentYear = DateTime.now().year.toString();
     final bookCount = booksBox.values.length;
-    
+
     final existingStats = statsBox.values.firstWhere(
       (s) => s.year == currentYear,
       orElse: () => Statistics()..year = currentYear..count = 0,
     );
-    
+
     if (statsBox.values.any((s) => s.year == currentYear)) {
       existingStats.count = bookCount;
       existingStats.save();
@@ -57,7 +63,7 @@ class _YearlyStatsScreenState extends State<YearlyStatsScreen> {
         ..count = bookCount;
       statsBox.add(newStats);
     }
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -73,12 +79,46 @@ class _YearlyStatsScreenState extends State<YearlyStatsScreen> {
   void _addYear() {
     final currentYear = DateTime.now().year;
     final newYear = (currentYear + 1).toString();
-    
+
     if (!statsBox.values.any((s) => s.year == newYear)) {
       final newStats = Statistics()
         ..year = newYear
         ..count = 0;
       statsBox.add(newStats);
+    }
+  }
+
+  void _deleteYear(dynamic key) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Year'),
+        content: const Text('Are you sure you want to delete this year\'s statistics?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await statsBox.delete(key);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Statistics deleted',
+              style: GoogleFonts.fraunces(),
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -146,7 +186,7 @@ class _YearlyStatsScreenState extends State<YearlyStatsScreen> {
             itemBuilder: (context, index) {
               final stat = stats[index];
               final maxCount = stats.isEmpty ? 1 : stats.map((s) => s.count).reduce((a, b) => a > b ? a : b);
-              
+
               return Card(
                 margin: const EdgeInsets.only(bottom: 16),
                 child: Padding(
@@ -162,7 +202,7 @@ class _YearlyStatsScreenState extends State<YearlyStatsScreen> {
                             style: GoogleFonts.playfairDisplay(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF2C3E50),
+                              color: const Color(0xFF1A3233),
                             ),
                           ),
                           Row(
@@ -175,15 +215,20 @@ class _YearlyStatsScreenState extends State<YearlyStatsScreen> {
                               ),
                               Text(
                                 '${stat.count} books',
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.fraunces(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF2C3E50),
+                                  color: const Color(0xFF1A3233),
                                 ),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.add, size: 20),
                                 onPressed: () => setState(() => _updateCount(stat.year, 1)),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, size: 20),
+                                color: const Color(0xFF1A3233),
+                                onPressed: () => _deleteYear(stat.key),
                               ),
                             ],
                           ),
