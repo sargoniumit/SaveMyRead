@@ -132,7 +132,7 @@ class BookDetailScreen extends StatelessWidget {
                           children: List.generate(5, (starIndex) {
                             return Icon(
                               starIndex < updatedBook.rating! ? Icons.star : Icons.star_border,
-                              color: Colors.amber,
+                              color: const Color(0xFFB68D40),
                               size: 24,
                             );
                           }),

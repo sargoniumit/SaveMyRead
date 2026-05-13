@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:save_my_read/models/book.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'add_book_screen.dart';
 import 'book_detail_screen.dart';
+import 'yearly_stats_screen.dart';
 import 'dart:io';
 
 class HomeScreen extends StatefulWidget {
@@ -14,31 +17,138 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Row(
+  Future<void> _showDeveloperInfo() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Developer Info',
+          style: GoogleFonts.playfairDisplay(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF2C3E50),
+          ),
+        ),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.menu_book, color: Color(0xFF2C3E50), size: 28),
-            const SizedBox(width: 8),
-            ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [Color(0xFF2C3E50), Color(0xFF8E44AD)],
-              ).createShader(bounds),
+            Text(
+              'Developer:',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'SargoniumIT',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF2C3E50),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Version:',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              packageInfo.version,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF2C3E50),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Email:',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 4),
+            InkWell(
+              onTap: () async {
+                final email = Uri.parse('mailto:sargoniumit@gmail.com');
+                if (await canLaunchUrl(email)) {
+                  launchUrl(email);
+                }
+              },
               child: Text(
-                'SaveMyRead',
-                style: GoogleFonts.playfairDisplay(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                'sargoniumit@gmail.com',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF8E44AD),
+                  decoration: TextDecoration.underline,
                 ),
               ),
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Close',
+              style: GoogleFonts.poppins(
+                color: const Color(0xFF8E44AD),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.menu_book, size: 28),
+            SizedBox(width: 8),
+            Text('SaveMyRead'),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const YearlyStatsScreen(),
+                ),
+              );
+            },
+            tooltip: 'Yearly Stats',
+          ),
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: _showDeveloperInfo,
+            tooltip: 'Developer Info',
+          ),
+        ],
       ),
       body: SafeArea(
         child: ValueListenableBuilder(
@@ -135,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         starIndex < book.rating!
                                             ? Icons.star
                                             : Icons.star_border,
-                                        color: Colors.amber,
+                                        color: const Color(0xFFB68D40),
                                         size: 16,
                                       );
                                     }),

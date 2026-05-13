@@ -232,7 +232,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
                     return IconButton(
                       icon: Icon(
                         index < (_rating ?? 0) ? Icons.star : Icons.star_border,
-                        color: Colors.amber,
+                        color: const Color(0xFFB68D40),
                       ),
                       onPressed: () {
                         setState(() {
